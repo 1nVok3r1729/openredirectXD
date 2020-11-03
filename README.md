@@ -5,4 +5,6 @@ Tool to find open redirects in get parameters. It take inputs from stdin. It sim
 ```go get github.com/noobexploiter/openredirectXD```
 
 # How to use
+```cat vulnweb_all_urls.txt | openredirectXD -t 5```
+### You can specify the payload too
 ```cat vulnweb_all_urls.txt | openredirectXD -t 5 -p 'http://anywhere.com'```
