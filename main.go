@@ -75,6 +75,7 @@ func checkredirect(s, payload string) {
 		if err != nil {
 			return
 		}
+		defer resp.Body.Close()
 		if resp.StatusCode == 302 || resp.StatusCode == 301 || resp.StatusCode == 304 {
 			if strings.Contains(resp.Header.Get("Location"), parsed.Host) {
 				fmt.Println(s, "is vulnerable to open redirect")
@@ -88,13 +89,17 @@ func checkredirect(s, payload string) {
 		if resp.StatusCode == 302 || resp.StatusCode == 301 || resp.StatusCode == 304 {
 			if strings.Contains(resp.Header.Get("Location"), "evil.com") {
 				fmt.Println(s, "is vulnerable to open redirect")
+				return
 			}
 		}
 	}
 }
 
 func changeparams(s, value string) string {
-	parsed, _ := url.Parse(s)
+	parsed, err := url.Parse(s)
+	if err != nil {
+		return ""
+	}
 	values := url.Values{}
 	for a := range parsed.Query() {
 		values.Add(a, value)
