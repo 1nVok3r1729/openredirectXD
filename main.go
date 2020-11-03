@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strings"
 	"sync"
 	"time"
 )
@@ -28,9 +27,6 @@ var transport = &http.Transport{
 
 var httpClient = &http.Client{
 	Transport: transport,
-	CheckRedirect: func(req *http.Request, via []*http.Request) error {
-		return http.ErrUseLastResponse
-	},
 }
 
 func main() {
@@ -79,21 +75,23 @@ func checkredirect(s, payload string) {
 			return
 		}
 		defer resp.Body.Close()
-		if resp.StatusCode == 302 || resp.StatusCode == 301 || resp.StatusCode == 304 {
-			if strings.Contains(resp.Header.Get("Location"), parsed.Host) {
-				fmt.Println(s, "is vulnerable to open redirect")
-			}
+		final := resp.Request.URL.String()
+		redirectparse, _ := url.Parse(final)
+		if redirectparse.Host == parsed.Host {
+			fmt.Println(s, "is vulnerable to open redirect")
+			return
 		}
 	} else {
 		resp, err := httpClient.Get(changeparams(s, "http://evil.com"))
 		if err != nil {
 			return
 		}
-		if resp.StatusCode == 302 || resp.StatusCode == 301 || resp.StatusCode == 304 {
-			if strings.Contains(resp.Header.Get("Location"), "evil.com") {
-				fmt.Println(s, "is vulnerable to open redirect")
-				return
-			}
+		defer resp.Body.Close()
+		final := resp.Request.URL.String()
+		redirectparse, _ := url.Parse(final)
+		if redirectparse.Host == "evil.com" {
+			fmt.Println(s, "is vulnerable to open redirect")
+			return
 		}
 	}
 }
