@@ -58,7 +58,10 @@ func main() {
 
 	input := bufio.NewScanner(os.Stdin)
 	for input.Scan() {
-		parsed, _ := url.Parse(input.Text())
+		parsed, err := url.Parse(input.Text())
+		if err != nil {
+			continue
+		}
 		if len(parsed.Query()) == 0 {
 			continue
 		}
